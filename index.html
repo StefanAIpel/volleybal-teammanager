@@ -1612,7 +1612,16 @@
         function saveEdit() {
             const tegenstander = document.getElementById('editTegenstander').value;
             const veld = document.getElementById('editVeld').value;
-            saveWedstrijdEdit(currentWeekend, currentTeam, editingWedstrijd, { tegenstander, veld });
+            
+            // Check if values match original (then remove edit)
+            const original = baseData[currentWeekend]?.teams[currentTeam]?.wedstrijden.find(w => w.id === editingWedstrijd);
+            if (original && tegenstander === original.tegenstander && veld === original.veld) {
+                // Back to original - remove the edit
+                saveWedstrijdEdit(currentWeekend, currentTeam, editingWedstrijd, null);
+            } else {
+                // Save the edit
+                saveWedstrijdEdit(currentWeekend, currentTeam, editingWedstrijd, { tegenstander, veld });
+            }
             closeEditModal();
         }
         
