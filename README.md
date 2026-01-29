@@ -18,7 +18,7 @@ PWA voor het volleybalteam Switch Volley Stars Level 3.
 
 ## Live
 
-🔗 [Netlify URL hier invullen]
+🔗 https://switchl3.netlify.app/
 
 ## Installatie
 
