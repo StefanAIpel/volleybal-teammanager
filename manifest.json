@@ -1,0 +1,18 @@
+{
+  "name": "Switch Volley Stars L3",
+  "short_name": "Switch L3",
+  "description": "Wedstrijdschema Volley Stars Level 3",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e3a5f",
+  "theme_color": "#1e3a5f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23ff6b35' width='512' height='512' rx='100'/><text x='256' y='340' text-anchor='middle' font-size='280'>🏐</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

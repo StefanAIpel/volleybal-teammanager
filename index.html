@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e3a5f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Switch L3">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23ff6b35' width='100' height='100' rx='20'/><text x='50' y='68' text-anchor='middle' font-size='50'>🏐</text></svg>">
+    <title>Switch Volley Stars L3</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0d4f6e 50%, #0a3d5c 100%);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0d4f6e 100%);
+            padding: 10px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .logo-text h1 { color: white; font-size: 14px; font-weight: 800; }
+        .logo-text p { color: #ffb088; font-size: 11px; font-weight: 600; }
+        
+        .header-right {
+            text-align: right;
+        }
+        
+        .today-date {
+            color: rgba(255,255,255,0.8);
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .countdown {
+            color: #ff8c42;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        
+        @media (min-width: 768px) {
+            .logo-icon { width: 36px; height: 36px; font-size: 20px; }
+            .logo-text h1 { font-size: 18px; }
+            .logo-text p { font-size: 13px; }
+            .today-date { font-size: 13px; }
+            .countdown { font-size: 12px; }
+        }
+        
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background: rgba(0,0,0,0.2);
+            margin: 0 16px 12px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-tab.active {
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            color: white;
+        }
+        
+        /* Page container */
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        /* Weekend selector */
+        .weekend-selector {
+            display: flex; 
+            gap: 6px; 
+            padding: 0 16px 8px;
+        }
+        .weekend-btn {
+            flex: 1;
+            padding: 8px 4px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7);
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .weekend-btn.active {
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            color: white;
+        }
+        .weekend-btn.past {
+            opacity: 0.5;
+        }
+        .weekend-btn.current {
+            box-shadow: 0 0 0 2px #22c55e;
+        }
+        
+        /* Team selector */
+        .team-selector {
+            display: flex; gap: 6px; padding: 0 16px 8px;
+        }
+        .team-btn {
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7);
+        }
+        .team-btn.active {
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            color: white;
+        }
+        
+        /* Cards */
+        .card {
+            margin: 0 16px 12px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #1e3a5f, #0d4f6e);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-number {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 16px;
+        }
+        .card-title { color: white; font-size: 15px; font-weight: 700; }
+        .card-subtitle { color: #ffb088; font-size: 11px; font-weight: 500; }
+        @media (min-width: 768px) {
+            .card-subtitle { font-size: 15px; }
+        }
+        
+        .card-content { padding: 12px 14px; }
+        
+        /* Gewijzigde items markering */
+        .wed-modified {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2) !important;
+            border-left-color: #ef4444 !important;
+        }
+        .wed-modified .wed-tegenstander,
+        .wed-modified .wed-veld {
+            color: #dc2626 !important;
+        }
+        .wed-modified .wed-veld {
+            background: #dc2626 !important;
+            color: white !important;
+        }
+        .modified-badge {
+            font-size: 8px;
+            background: #ef4444;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin-left: 4px;
+            font-weight: 600;
+        }
+        
+        /* Overview cards */
+        .overview-card {
+            margin: 0 16px 10px;
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .overview-card.cancelled {
+            opacity: 0.6;
+            background: #f1f5f9;
+        }
+        .overview-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .overview-team {
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .overview-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff6b35;
+        }
+        .overview-location {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .overview-spelers {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        @media (min-width: 768px) {
+            .overview-spelers { font-size: 14px; }
+        }
+        .overview-begeleiders {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .overview-begeleider {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .overview-begeleider.empty {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        /* Info section */
+        .info-section {
+            margin: 0 16px 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .info-toggle {
+            width: 100%;
+            padding: 12px 14px;
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .info-content {
+            padding: 0 14px 12px;
+            display: none;
+        }
+        .info-content.show { display: block; }
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            color: rgba(255,255,255,0.9);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        .info-icon { color: #ff8c42; width: 18px; }
+        
+        /* Location */
+        .location-box {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .location-row { display: flex; gap: 10px; }
+        .location-main { flex: 1; }
+        .location-time {
+            text-align: center;
+            background: white;
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+        .location-label { font-size: 10px; color: #64748b; }
+        .location-value { font-size: 12px; font-weight: 600; color: #1e293b; }
+        .location-big { font-size: 18px; color: #ff6b35; }
+        .location-address { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .location-address a { color: #0d4f6e; text-decoration: none; }
+        
+        .warning-box {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        /* Begeleiders */
+        .begeleiders-box {
+            background: #fff7ed;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .begeleiders-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+        .begeleider-row {
+            background: white;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .begeleider-label { font-size: 11px; color: #64748b; }
+        .begeleider-value { font-size: 12px; color: #1e293b; }
+        .begeleider-value.empty { color: #94a3b8; font-style: italic; }
+        .btn-small {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-add { background: linear-gradient(135deg, #ff6b35, #ff8c42); color: white; }
+        .btn-remove { background: #fee2e2; color: #dc2626; }
+        
+        /* Form */
+        .form-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .form-modal.show { display: flex; }
+        .form-box {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            width: 100%;
+            max-width: 320px;
+        }
+        .form-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .form-row { margin-bottom: 10px; }
+        .form-label { font-size: 12px; color: #64748b; margin-bottom: 6px; display: block; }
+        .form-options { display: flex; gap: 6px; flex-wrap: wrap; }
+        .form-option {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            background: white;
+            color: #64748b;
+        }
+        .form-option.selected { border-color: #ff6b35; background: #fff7ed; color: #ff6b35; }
+        .form-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .form-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-cancel { background: #e2e8f0; color: #64748b; }
+        .btn-submit { background: #22c55e; color: white; }
+        .btn-submit:disabled { background: #cbd5e1; }
+        
+        /* Wedstrijden */
+        .wedstrijd {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .wedstrijd.thuis {
+            background: linear-gradient(135deg, #dcfce7, #d1fae5);
+            border-left: 3px solid #22c55e;
+        }
+        .wedstrijd.uit {
+            background: #f1f5f9;
+            border-left: 3px solid #94a3b8;
+        }
+        .wed-tijd { font-size: 13px; font-weight: 700; width: 42px; }
+        .wed-info { flex: 1; }
+        .wed-type { font-size: 9px; font-weight: 700; text-transform: uppercase; }
+        .thuis .wed-type { color: #16a34a; }
+        .uit .wed-type { color: #64748b; }
+        .wed-tegenstander { font-size: 12px; font-weight: 600; }
+        .wed-veld {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+        .thuis .wed-veld { background: #166534; color: white; }
+        .uit .wed-veld { background: #e2e8f0; color: #64748b; }
+        .wed-tellen {
+            font-size: 9px;
+            background: #3b82f6;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .wed-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .wed-edit, .wed-delete {
+            width: 24px; height: 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+        }
+        .admin-mode .wed-edit, .admin-mode .wed-delete { display: block; }
+        .wed-edit { background: #e0f2fe; color: #0284c7; }
+        .wed-delete { background: #fee2e2; color: #dc2626; }
+        
+        .legenda {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .legenda-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #64748b; }
+        .legenda-color { width: 10px; height: 10px; border-radius: 2px; }
+        .legenda-color.thuis { background: #22c55e; }
+        .legenda-color.uit { background: #94a3b8; }
+        
+        /* Spelregels */
+        .spelregels-section {
+            margin: 0 16px 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .spelregels-toggle {
+            width: 100%;
+            padding: 12px 14px;
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+        }
+        .spelregels-content {
+            background: white;
+            margin: 0 8px 8px;
+            border-radius: 8px;
+            padding: 12px;
+            display: none;
+        }
+        .spelregels-content.show { display: block; }
+        .spelregels-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .spelregel-item {
+            background: #f1f5f9;
+            border-radius: 6px;
+            padding: 8px 4px;
+            text-align: center;
+        }
+        .spelregel-item .icon { font-size: 16px; }
+        .spelregel-item .label { font-size: 9px; color: #64748b; }
+        .spelregel-item .value { font-size: 10px; font-weight: 600; }
+        .spelregels-list { list-style: none; }
+        .spelregels-list li {
+            display: flex;
+            gap: 6px;
+            font-size: 11px;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .spelregels-list .num { color: #ff6b35; font-weight: 700; min-width: 14px; }
+        
+        /* PWA Install */
+        .pwa-section {
+            margin: 0 16px 12px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .pwa-title {
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .pwa-instructions {
+            color: rgba(255,255,255,0.8);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .pwa-instructions strong { color: #60a5fa; }
+        
+        /* Admin toggle */
+        .admin-toggle {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #1e3a5f, #0d4f6e);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 50;
+        }
+        .admin-toggle.active {
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+        }
+        
+        /* Status */
+        .status-bar {
+            margin: 0 16px 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+        .status-bar.ok { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .status-bar.error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .status-bar.loading { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+        
+        /* Cancelled state */
+        .cancelled-notice {
+            text-align: center;
+            padding: 30px 20px;
+            color: #64748b;
+        }
+        .cancelled-notice .icon { font-size: 40px; margin-bottom: 8px; }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px 16px;
+            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+        }
+        
+        /* Desktop styling */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .header, .nav-tabs, .status-bar, .page, .footer,
+            .info-section, .spelregels-section, .weekend-selector, .team-selector {
+                max-width: 600px;
+                width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .card, .overview-card, .pwa-section {
+                max-width: 568px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .header {
+                border-radius: 0 0 16px 16px;
+                margin-top: 0;
+            }
+            .logo-text h1 { font-size: 18px; }
+            .logo-text p { font-size: 14px; }
+            .today-date { font-size: 13px; }
+            .card-subtitle { font-size: 15px; }
+            .overview-spelers { font-size: 14px; }
+            .wed-tegenstander { font-size: 14px; }
+        }
+        
+        /* Print button */
+        .print-btn {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #1e3a5f, #0d4f6e);
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        @media (min-width: 768px) {
+            .print-btn { display: block; }
+        }
+        
+        /* Print styling */
+        @media print {
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .header, .nav-tabs, .status-bar, .admin-toggle,
+            .info-section, .spelregels-section, .footer,
+            .weekend-selector, .team-selector, .print-btn,
+            .begeleiders-box .btn-small, .wed-actions {
+                display: none !important;
+            }
+            .page { display: none !important; }
+            .page.active { display: block !important; }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0;
+                break-inside: avoid;
+            }
+            .card-header {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .wedstrijd {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .print-header {
+                display: block !important;
+                text-align: center;
+                padding: 20px;
+                border-bottom: 2px solid #ff6b35;
+                margin-bottom: 20px;
+            }
+            .print-header h1 {
+                font-size: 24px;
+                color: #1e3a5f;
+                margin-bottom: 4px;
+            }
+            .print-header p {
+                font-size: 14px;
+                color: #64748b;
+            }
+        }
+        
+        .print-header {
+            display: none;
+        }
+        
+        /* Edit modal */
+        .edit-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .edit-input:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-icon">🏐</div>
+            <div class="logo-text">
+                <h1>VOLLEY STARS L3</h1>
+                <p>Switch Hooglanderveen</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="today-date" id="todayDate"></div>
+            <div class="countdown" id="countdown"></div>
+        </div>
+    </div>
+    
+    <div class="print-header" id="printHeader">
+        <h1>🏐 Switch Volley Stars L3</h1>
+        <p id="printSubtitle"></p>
+    </div>
+    
+    <div class="nav-tabs">
+        <button class="nav-tab" data-page="overview">📋 Overzicht</button>
+        <button class="nav-tab active" data-page="teams">🏐 Teams</button>
+        <button class="nav-tab" data-page="info">ℹ️ Info</button>
+    </div>
+    
+    <div class="status-bar ok" id="statusBar">
+        <span>✅</span>
+        <span>Verbonden - data wordt live gesynchroniseerd</span>
+    </div>
+    
+    <!-- OVERVIEW PAGE -->
+    <div class="page" id="page-overview">
+        <div class="weekend-selector" id="overviewWeekendSelector"></div>
+        
+        <div class="info-section">
+            <button class="info-toggle" onclick="toggleInfo('overviewInfo')">
+                <span>📋 Algemene informatie</span>
+                <span id="overviewInfoArrow">▼</span>
+            </button>
+            <div class="info-content show" id="overviewInfo">
+                <div class="info-item"><span class="info-icon">⏰</span><span>15 minuten van tevoren verzamelen in de zaal</span></div>
+                <div class="info-item"><span class="info-icon">👕</span><span>Switch shirt + zwart broekje meenemen</span></div>
+                <div class="info-item"><span class="info-icon">🏠</span><span>Thuisteam levert teller (handtellers aanwezig)</span></div>
+                <div class="info-item"><span class="info-icon">👥</span><span>1 begeleider + 1 scheidsrechter per team</span></div>
+                <div class="info-item"><span class="info-icon">🪑</span><span>Andere ouders op de tribune</span></div>
+            </div>
+        </div>
+        
+        <div id="overviewContent"></div>
+    </div>
+    
+    <!-- TEAMS PAGE -->
+    <div class="page active" id="page-teams">
+        <div class="weekend-selector" id="teamsWeekendSelector"></div>
+        <div class="team-selector" id="teamSelector"></div>
+        
+        <div class="info-section">
+            <button class="info-toggle" onclick="toggleInfo('teamInfo')">
+                <span>📋 Algemene informatie</span>
+                <span id="teamInfoArrow">▼</span>
+            </button>
+            <div class="info-content" id="teamInfo">
+                <div class="info-item"><span class="info-icon">⏰</span><span>15 minuten van tevoren verzamelen</span></div>
+                <div class="info-item"><span class="info-icon">👕</span><span>Switch shirt + zwart broekje meenemen</span></div>
+                <div class="info-item"><span class="info-icon">🏠</span><span>Thuisteam levert teller</span></div>
+                <div class="info-item"><span class="info-icon">👥</span><span>1 begeleider + 1 scheidsrechter</span></div>
+                <div class="info-item"><span class="info-icon">🪑</span><span>Andere ouders op tribune</span></div>
+            </div>
+        </div>
+        
+        <div class="spelregels-section">
+            <button class="spelregels-toggle" onclick="toggleSpelregels()">
+                <span>📜 Spelregels Level 3 - Pass Volley</span>
+                <span id="spelregelsArrow">▼</span>
+            </button>
+            <div class="spelregels-content" id="spelregelsContent">
+                <div class="spelregels-grid">
+                    <div class="spelregel-item"><div class="icon">👥</div><div class="label">Spelers</div><div class="value">2v2</div></div>
+                    <div class="spelregel-item"><div class="icon">📏</div><div class="label">Net</div><div class="value">2.00m</div></div>
+                    <div class="spelregel-item"><div class="icon">🏐</div><div class="label">Veld</div><div class="value">4.5×5.2</div></div>
+                    <div class="spelregel-item"><div class="icon">⚽</div><div class="label">Bal</div><div class="value">170g</div></div>
+                </div>
+                <ul class="spelregels-list">
+                    <li><span class="num">1.</span>Rally start met opgooien voor medespeler</li>
+                    <li><span class="num">2.</span>Bal in 3x: Pass → Vang/opgooi → Aanval</li>
+                    <li><span class="num">3.</span>Na onderarms: medespeler of zelf vangen</li>
+                    <li><span class="num">4.</span>Na bovenhands: medespeler moet vangen</li>
+                    <li><span class="num">5.</span>Vanger rent naar net, gooit binnen 3 sec.</li>
+                    <li><span class="num">6.</span>Aanval: bovenhands, tip, smash, onderarms</li>
+                    <li><span class="num">7.</span>Blok telt niet als aanraking</li>
+                    <li><span class="num">8.</span>Netfout = dubbelfout, rally opnieuw</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="teamContent"></div>
+    </div>
+    
+    <!-- INFO PAGE -->
+    <div class="page" id="page-info">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-number">📱</div>
+                <div>
+                    <div class="card-title">App Installeren</div>
+                    <div class="card-subtitle">Voeg toe aan je startscherm</div>
+                </div>
+            </div>
+            <div class="card-content">
+                <p style="font-size:13px; color:#475569; margin-bottom:12px;">
+                    Installeer deze app op je telefoon voor snelle toegang:
+                </p>
+                <div style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:10px;">
+                    <p style="font-size:12px; font-weight:600; color:#1e293b; margin-bottom:6px;">📱 iPhone / iPad:</p>
+                    <p style="font-size:11px; color:#64748b;">
+                        1. Tik op <strong>Delen</strong> (vierkantje met pijl)<br>
+                        2. Scroll en tik <strong>"Zet op beginscherm"</strong><br>
+                        3. Tik <strong>"Voeg toe"</strong>
+                    </p>
+                </div>
+                <div style="background:#f1f5f9; padding:10px; border-radius:8px;">
+                    <p style="font-size:12px; font-weight:600; color:#1e293b; margin-bottom:6px;">🤖 Android:</p>
+                    <p style="font-size:11px; color:#64748b;">
+                        1. Tik op <strong>⋮</strong> (drie puntjes) rechtsboven<br>
+                        2. Tik <strong>"App installeren"</strong> of <strong>"Toevoegen aan startscherm"</strong><br>
+                        3. Bevestig met <strong>"Installeren"</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-number">📍</div>
+                <div>
+                    <div class="card-title">Locaties</div>
+                    <div class="card-subtitle">Adressen sporthallen</div>
+                </div>
+            </div>
+            <div class="card-content" id="locatiesContent"></div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-number">⚙️</div>
+                <div>
+                    <div class="card-title">Admin Modus</div>
+                    <div class="card-subtitle">Wedstrijden bewerken</div>
+                </div>
+            </div>
+            <div class="card-content">
+                <p style="font-size:12px; color:#64748b; margin-bottom:10px;">
+                    Klik op de ⚙️ knop rechtsonder om wedstrijden te kunnen bewerken of verwijderen.
+                </p>
+                <button onclick="toggleAdmin()" style="width:100%; padding:10px; border:none; border-radius:8px; background:linear-gradient(135deg,#1e3a5f,#0d4f6e); color:white; font-weight:600; cursor:pointer;">
+                    Admin modus aan/uit
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <button class="admin-toggle" id="adminToggle" onclick="toggleAdmin()">⚙️</button>
+    
+    <!-- Begeleider Form Modal -->
+    <div class="form-modal" id="begeleiderModal">
+        <div class="form-box">
+            <div class="form-title" id="formTitle">Aanmelden als begeleider</div>
+            <div class="form-row">
+                <label class="form-label">Ik ben:</label>
+                <div class="form-options" id="rolOptions"></div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Van:</label>
+                <div class="form-options" id="kindOptions"></div>
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeModal()">Annuleren</button>
+                <button class="btn-submit" id="submitBtn" disabled onclick="submitBegeleider()">Aanmelden</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Modal -->
+    <div class="form-modal" id="editModal">
+        <div class="form-box">
+            <div class="form-title">Wedstrijd bewerken</div>
+            <div class="form-row">
+                <label class="form-label">Tegenstander:</label>
+                <input type="text" class="edit-input" id="editTegenstander">
+            </div>
+            <div class="form-row">
+                <label class="form-label">Veld:</label>
+                <input type="text" class="edit-input" id="editVeld">
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeEditModal()">Annuleren</button>
+                <button class="btn-submit" onclick="saveEdit()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        Switch Volleybal • Hooglanderveen<br>
+        Volley Stars Level 3 - Pass Volley<br>
+        <span style="opacity:0.5;">v2.0</span>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQvhjW31ukCMAv-zP6i8duseJ29tF1zCs",
+            authDomain: "switch-l3.firebaseapp.com",
+            databaseURL: "https://switch-l3-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "switch-l3",
+            storageBucket: "switch-l3.firebasestorage.app",
+            messagingSenderId: "193773135561",
+            appId: "1:193773135561:web:cdfa304febd543d0744f18"
+        };
+        
+        let db = null;
+        let firebaseEnabled = false;
+        
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            firebaseEnabled = true;
+        } catch (e) {
+            console.error("Firebase init error:", e);
+        }
+        
+        // Locaties
+        const locaties = {
+            'De Bunt, Soest': { adres: 'Oude Utrechtseweg 10, 3743 KN Soest', maps: 'https://maps.google.com/?q=Oude+Utrechtseweg+10+Soest' },
+            'Nieuwland, Amersfoort': { adres: 'Zeldertsedreef 3, 3824 EG Amersfoort', maps: 'https://maps.google.com/?q=Zeldertsedreef+3+Amersfoort' },
+            'Sportcomplex Amerena, Amersfoort': { adres: 'De Velduil 2, 3815 SP Amersfoort', maps: 'https://maps.google.com/?q=De+Velduil+2+Amersfoort' },
+            'Dorpshuis De Dissel, Hooglanderveen': { adres: 'Disselplein 6, 3829 MD Hooglanderveen', maps: 'https://maps.google.com/?q=Disselplein+6+Hooglanderveen' }
+        };
+        
+        // Data
+        const baseData = {
+            '10-jan': {
+                datum: 'Zaterdag 10 januari 2026',
+                dateObj: new Date(2026, 0, 10),
+                teams: {
+                    'L3-1': {
+                        spelers: ['Nursu', 'Linde', 'Owen'],
+                        locatie: 'De Bunt, Soest',
+                        verzamelen: '10:25',
+                        wedstrijden: [
+                            { id: '1a', tijd: '10:40', tegenstander: 'Forza Hoogland L3-3', thuis: true, veld: 'C3' },
+                            { id: '1b', tijd: '10:50', tegenstander: 'Sovoco L3-1', thuis: true, veld: 'C2' },
+                            { id: '1c', tijd: '11:10', tegenstander: 'AVV Keistad L3-2', thuis: true, veld: 'C2' },
+                            { id: '1d', tijd: '11:20', tegenstander: 'Switch L3-2', thuis: false, veld: 'C1' },
+                            { id: '1e', tijd: '11:40', tegenstander: 'Switch L3-4', thuis: false, veld: 'C1' }
+                        ]
+                    },
+                    'L3-2': {
+                        spelers: ['Lotte', 'Viktoria', 'Aras'],
+                        locatie: 'De Bunt, Soest',
+                        info: '⚠️ Speelt schema AFAS-LEOS (Nieuwland afgelast)',
+                        verzamelen: '10:35',
+                        wedstrijden: [
+                            { id: '2a', tijd: '10:50', tegenstander: 'AVV Keistad L3-5', thuis: false, veld: 'C1' },
+                            { id: '2b', tijd: '11:00', tegenstander: 'Forza Hoogland L3-3', thuis: true, veld: 'C2' },
+                            { id: '2c', tijd: '11:20', tegenstander: 'Switch L3-1', thuis: true, veld: 'C1' },
+                            { id: '2d', tijd: '11:30', tegenstander: 'Sovoco L3-1', thuis: true, veld: 'C2' },
+                            { id: '2e', tijd: '11:50', tegenstander: 'AVV Keistad L3-2', thuis: false, veld: 'C2' }
+                        ]
+                    },
+                    'L3-3': {
+                        spelers: ['Sera', 'Sara A'],
+                        locatie: '',
+                        info: '❌ Afgelast (Nieuwland geannuleerd)',
+                        verzamelen: '-',
+                        wedstrijden: []
+                    },
+                    'L3-4': {
+                        spelers: ['Sara B', 'Nisa'],
+                        locatie: 'De Bunt, Soest',
+                        verzamelen: '10:25',
+                        wedstrijden: [
+                            { id: '4a', tijd: '10:40', tegenstander: 'AVV Keistad L3-8', thuis: false, veld: 'C2' },
+                            { id: '4b', tijd: '11:00', tegenstander: 'AVV Keistad L3-5', thuis: false, veld: 'C1' },
+                            { id: '4c', tijd: '11:10', tegenstander: 'Sovoco L3-1', thuis: true, veld: 'C1' },
+                            { id: '4d', tijd: '11:30', tegenstander: 'Forza Hoogland L3-3', thuis: false, veld: 'C1' },
+                            { id: '4e', tijd: '11:40', tegenstander: 'Switch L3-1', thuis: true, veld: 'C1' }
+                        ]
+                    }
+                }
+            },
+            '24-jan': {
+                datum: 'Zaterdag 24 januari 2026',
+                dateObj: new Date(2026, 0, 24),
+                teams: {
+                    'L3-3': {
+                        spelers: ['Lotte', 'Sara A'],
+                        locatie: 'Dorpshuis De Dissel, Hooglanderveen',
+                        verzamelen: '08:45',
+                        wedstrijden: [
+                            { id: '3a', tijd: '09:00', tegenstander: 'Sovoco L3-3', thuis: false, veld: 'C2' },
+                            { id: '3b', tijd: '09:30', tegenstander: 'AFAS-LEOS L3-1', thuis: true, veld: 'C1' },
+                            { id: '3c', tijd: '09:40', tegenstander: 'AVV Keistad L3-3', thuis: true, veld: 'C2' },
+                            { id: '3d', tijd: '10:00', tegenstander: 'AVV Keistad L3-6', thuis: true, veld: 'C2' }
+                        ]
+                    }
+                }
+            },
+            '31-jan': {
+                datum: 'Zaterdag 31 januari 2026',
+                dateObj: new Date(2026, 0, 31),
+                teams: {
+                    'L3-1': {
+                        spelers: ['Nursu', 'Linde', 'Owen'],
+                        locatie: 'Sportcomplex Amerena, Amersfoort',
+                        verzamelen: '08:55',
+                        wedstrijden: [
+                            { id: '1f', tijd: '09:10', tegenstander: 'AVV Keistad L3-5', thuis: false, veld: 'C3' },
+                            { id: '1g', tijd: '09:20', tegenstander: 'AVV Keistad L3-8', thuis: true, veld: 'C2' },
+                            { id: '1h', tijd: '09:40', tegenstander: 'AVV Keistad L3-2', thuis: true, veld: 'C1' },
+                            { id: '1i', tijd: '09:50', tegenstander: 'Sovoco L3-1', thuis: true, veld: 'C2' },
+                            { id: '1j', tijd: '10:10', tegenstander: 'Switch L3-4', thuis: true, veld: 'C2' }
+                        ]
+                    },
+                    'L3-2': {
+                        spelers: ['Lotte', 'Viktoria', 'Nisa'],
+                        locatie: 'Sportcomplex Amerena, Amersfoort',
+                        verzamelen: '09:45',
+                        wedstrijden: [
+                            { id: '2f', tijd: '10:00', tegenstander: 'AVV Keistad L3-1', thuis: false, veld: 'C2' },
+                            { id: '2g', tijd: '10:30', tegenstander: 'AVV Keistad L3-7', thuis: false, veld: 'C4' },
+                            { id: '2h', tijd: '10:40', tegenstander: 'AVV Keistad L3-4', thuis: true, veld: 'C3' },
+                            { id: '2i', tijd: '11:00', tegenstander: 'Unicornus L3-1', thuis: true, veld: 'C4' },
+                            { id: '2j', tijd: '11:10', tegenstander: 'Forza Hoogland L3-4', thuis: true, veld: 'C4' }
+                        ]
+                    },
+                    'L3-3': {
+                        spelers: ['Sera', 'Sara A'],
+                        locatie: 'Sportcomplex Amerena, Amersfoort',
+                        verzamelen: '08:55',
+                        wedstrijden: [
+                            { id: '3e', tijd: '09:10', tegenstander: 'AVV Keistad L3-3', thuis: false, veld: 'C5' },
+                            { id: '3f', tijd: '09:20', tegenstander: 'KdK A.G.A.V.S. L3-1', thuis: true, veld: 'C6' },
+                            { id: '3g', tijd: '09:40', tegenstander: 'Sovoco L3-3', thuis: true, veld: 'C6' },
+                            { id: '3h', tijd: '09:50', tegenstander: 'Forza Hoogland L3-2', thuis: false, veld: 'C6' }
+                        ]
+                    },
+                    'L3-4': {
+                        spelers: ['Sara B', 'Aras'],
+                        locatie: 'Sportcomplex Amerena, Amersfoort',
+                        verzamelen: '08:45',
+                        wedstrijden: [
+                            { id: '4f', tijd: '09:00', tegenstander: 'AVV Keistad L3-2', thuis: false, veld: 'C1' },
+                            { id: '4g', tijd: '09:10', tegenstander: 'AFAS-LEOS L3-2', thuis: true, veld: 'C2' },
+                            { id: '4h', tijd: '09:30', tegenstander: 'AVV Keistad L3-8', thuis: false, veld: 'C1' },
+                            { id: '4i', tijd: '09:40', tegenstander: 'Forza Hoogland L3-3', thuis: true, veld: 'C3' },
+                            { id: '4j', tijd: '10:10', tegenstander: 'Switch L3-1', thuis: false, veld: 'C2' }
+                        ]
+                    }
+                }
+            },
+            '7-feb': {
+                datum: 'Zaterdag 7 februari 2026',
+                dateObj: new Date(2026, 1, 7),
+                teams: {
+                    'L3-1': {
+                        spelers: ['Nursu', 'Linde', 'Owen'],
+                        locatie: 'Dorpshuis De Dissel, Hooglanderveen',
+                        verzamelen: '10:05',
+                        wedstrijden: [
+                            { id: '1k', tijd: '10:20', tegenstander: 'Switch L3-4', thuis: false, veld: 'C1' },
+                            { id: '1l', tijd: '10:40', tegenstander: 'AVV Keistad L3-8', thuis: true, veld: 'C1' },
+                            { id: '1m', tijd: '10:50', tegenstander: 'AVV Keistad L3-5', thuis: false, veld: 'C3' },
+                            { id: '1n', tijd: '11:10', tegenstander: 'Forza Hoogland L3-3', thuis: false, veld: 'C3' },
+                            { id: '1o', tijd: '11:20', tegenstander: 'AFAS-LEOS L3-2', thuis: true, veld: 'C2' }
+                        ]
+                    },
+                    'L3-2': {
+                        spelers: ['Sera', 'Viktoria', 'Nisa'],
+                        locatie: 'Dorpshuis De Dissel, Hooglanderveen',
+                        verzamelen: '08:45',
+                        wedstrijden: [
+                            { id: '2k', tijd: '09:00', tegenstander: 'Forza Hoogland L3-1', thuis: true, veld: 'C1' },
+                            { id: '2l', tijd: '09:10', tegenstander: 'Sovoco L3-2', thuis: true, veld: 'C1' },
+                            { id: '2m', tijd: '09:30', tegenstander: 'Unicornus L3-1', thuis: true, veld: 'C1' },
+                            { id: '2n', tijd: '09:40', tegenstander: 'Forza Hoogland L3-4', thuis: false, veld: 'C3' },
+                            { id: '2o', tijd: '10:10', tegenstander: 'AVV Keistad L3-1', thuis: true, veld: 'C1' }
+                        ]
+                    },
+                    'L3-4': {
+                        spelers: ['Sara B', 'Aras'],
+                        locatie: 'Dorpshuis De Dissel, Hooglanderveen',
+                        verzamelen: '10:05',
+                        wedstrijden: [
+                            { id: '4k', tijd: '10:20', tegenstander: 'Switch L3-1', thuis: true, veld: 'C1' },
+                            { id: '4l', tijd: '10:40', tegenstander: 'AFAS-LEOS L3-2', thuis: false, veld: 'C3' },
+                            { id: '4m', tijd: '10:50', tegenstander: 'AVV Keistad L3-2', thuis: true, veld: 'C1' },
+                            { id: '4n', tijd: '11:20', tegenstander: 'AVV Keistad L3-5', thuis: true, veld: 'C1' },
+                            { id: '4o', tijd: '11:30', tegenstander: 'Sovoco L3-1', thuis: true, veld: 'C1' }
+                        ]
+                    }
+                }
+            }
+        };
+        
+        let appData = JSON.parse(JSON.stringify(baseData));
+        let begeleiders = {};
+        let wedstrijdEdits = {};
+        let currentWeekend = '10-jan';
+        let currentTeam = 'L3-1';
+        let currentPage = 'teams';
+        let adminMode = false;
+        let formType = null;
+        let editingWedstrijd = null;
+        let selectedRol = null;
+        let selectedKind = null;
+        
+        // Determine current/next weekend
+        function getCurrentWeekend() {
+            const today = new Date();
+            const weekends = Object.entries(baseData);
+            
+            for (const [key, data] of weekends) {
+                if (data.dateObj >= today) return key;
+            }
+            return weekends[weekends.length - 1][0];
+        }
+        
+        // Format today's date (kort)
+        function formatToday() {
+            const days = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+            const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+            const d = new Date();
+            return `${days[d.getDay()]}. ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+        
+        // Countdown tot volgende wedstrijd
+        function updateCountdown() {
+            const now = new Date();
+            let nextDate = null;
+            let nextInfo = null;
+            
+            for (const [key, weekend] of Object.entries(baseData)) {
+                for (const [teamId, team] of Object.entries(weekend.teams)) {
+                    if (team.wedstrijden && team.wedstrijden.length > 0) {
+                        for (const wed of team.wedstrijden) {
+                            const [h, m] = wed.tijd.split(':');
+                            const wedDate = new Date(weekend.dateObj);
+                            wedDate.setHours(parseInt(h), parseInt(m), 0, 0);
+                            
+                            if (wedDate > now && (!nextDate || wedDate < nextDate)) {
+                                nextDate = wedDate;
+                                // Haal laatste woord voor L3 uit tegenstander
+                                const tegenstander = wed.tegenstander;
+                                const parts = tegenstander.split(' ');
+                                const l3Index = parts.findIndex(p => p.startsWith('L3'));
+                                let shortName = tegenstander;
+                                if (l3Index > 0) {
+                                    shortName = parts[l3Index - 1] + ' ' + parts.slice(l3Index).join(' ');
+                                }
+                                nextInfo = {
+                                    team: teamId,
+                                    tegenstander: shortName,
+                                    thuis: wed.thuis
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (nextDate && nextInfo) {
+                const diff = nextDate - now;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                
+                let timeText = '';
+                if (days > 0) {
+                    timeText = `${days}d ${hours}u`;
+                } else if (hours > 0) {
+                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    timeText = `${hours}u ${mins}m`;
+                } else {
+                    const mins = Math.floor(diff / (1000 * 60));
+                    timeText = `${mins}m`;
+                }
+                
+                // Format: "1d 20u tot Keistad L3-2 vs L3-4" of "1d 20u tot L3-4 vs Keistad L3-2"
+                const matchup = nextInfo.thuis 
+                    ? `${nextInfo.team} vs ${nextInfo.tegenstander}`
+                    : `${nextInfo.tegenstander} vs ${nextInfo.team}`;
+                
+                document.getElementById('countdown').textContent = `🏐 ${timeText} tot ${matchup}`;
+            } else {
+                document.getElementById('countdown').textContent = '';
+            }
+        }
+        
+        // Update status bar
+        function updateStatus(status, message) {
+            const bar = document.getElementById('statusBar');
+            bar.className = 'status-bar ' + status;
+            bar.innerHTML = `<span>${status === 'ok' ? '✅' : status === 'error' ? '⚠️' : '🔄'}</span><span>${message}</span>`;
+        }
+        
+        // Load data from Firebase
+        function loadData() {
+            if (!firebaseEnabled || !db) {
+                updateStatus('error', 'Firebase niet verbonden - lokale opslag');
+                return;
+            }
+            
+            updateStatus('loading', 'Data laden...');
+            
+            // Load begeleiders
+            db.ref('begeleiders').on('value', snap => {
+                begeleiders = snap.val() || {};
+                render();
+            }, err => {
+                console.error(err);
+                updateStatus('error', 'Kon data niet laden. Probeer te verversen.');
+            });
+            
+            // Load wedstrijd edits
+            db.ref('wedstrijdEdits').on('value', snap => {
+                wedstrijdEdits = snap.val() || {};
+                applyEdits();
+                render();
+                updateStatus('ok', 'Verbonden - data wordt live gesynchroniseerd');
+            });
+        }
+        
+        // Apply edits to data
+        function applyEdits() {
+            appData = JSON.parse(JSON.stringify(baseData));
+            
+            for (const [key, edit] of Object.entries(wedstrijdEdits)) {
+                const [weekend, team, wedId] = key.split('_');
+                if (appData[weekend]?.teams[team]) {
+                    const wed = appData[weekend].teams[team].wedstrijden.find(w => w.id === wedId);
+                    if (wed) {
+                        if (edit.deleted) {
+                            appData[weekend].teams[team].wedstrijden = 
+                                appData[weekend].teams[team].wedstrijden.filter(w => w.id !== wedId);
+                        } else {
+                            if (edit.tegenstander) wed.tegenstander = edit.tegenstander;
+                            if (edit.veld) wed.veld = edit.veld;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Save begeleider
+        function saveBegeleider(key, type, value) {
+            if (!begeleiders[key]) begeleiders[key] = {};
+            begeleiders[key][type] = value;
+            
+            if (firebaseEnabled && db) {
+                db.ref('begeleiders/' + key).set(begeleiders[key]);
+            }
+        }
+        
+        // Remove begeleider
+        function removeBegeleider(key, type) {
+            if (begeleiders[key]) {
+                begeleiders[key][type] = null;
+                if (firebaseEnabled && db) {
+                    db.ref('begeleiders/' + key + '/' + type).remove();
+                }
+            }
+            render();
+        }
+        
+        // Save wedstrijd edit
+        function saveWedstrijdEdit(weekend, team, wedId, edit) {
+            const key = `${weekend}_${team}_${wedId}`;
+            if (firebaseEnabled && db) {
+                db.ref('wedstrijdEdits/' + key).set(edit);
+            }
+        }
+        
+        // Toggle admin mode
+        function toggleAdmin() {
+            adminMode = !adminMode;
+            document.body.classList.toggle('admin-mode', adminMode);
+            document.getElementById('adminToggle').classList.toggle('active', adminMode);
+        }
+        
+        // Render weekend selectors
+        function renderWeekendSelectors() {
+            const today = new Date();
+            const currentWknd = getCurrentWeekend();
+            
+            const shortDates = {
+                '10-jan': '10 jan',
+                '24-jan': '24 jan', 
+                '31-jan': '31 jan',
+                '7-feb': '7 feb'
+            };
+            
+            const html = Object.entries(baseData).map(([key, data]) => {
+                const isPast = data.dateObj < today && data.dateObj.toDateString() !== today.toDateString();
+                const isCurrent = key === currentWknd;
+                return `<button class="weekend-btn ${currentWeekend === key ? 'active' : ''} ${isPast ? 'past' : ''} ${isCurrent ? 'current' : ''}" 
+                        onclick="selectWeekend('${key}')">${shortDates[key]}</button>`;
+            }).join('');
+            
+            document.getElementById('overviewWeekendSelector').innerHTML = html;
+            document.getElementById('teamsWeekendSelector').innerHTML = html;
+        }
+        
+        // Render team selector
+        function renderTeamSelector() {
+            const teams = ['L3-1', 'L3-2', 'L3-3', 'L3-4'];
+            document.getElementById('teamSelector').innerHTML = teams.map(t => 
+                `<button class="team-btn ${currentTeam === t ? 'active' : ''}" onclick="selectTeam('${t}')">Team ${t.split('-')[1]}</button>`
+            ).join('');
+        }
+        
+        // Render overview page
+        function renderOverview() {
+            const weekend = appData[currentWeekend];
+            if (!weekend) return;
+            
+            const teamsArray = Object.entries(weekend.teams)
+                .filter(([_, t]) => t.wedstrijden.length > 0)
+                .sort((a, b) => a[0].localeCompare(b[0]));
+            
+            const cancelledTeams = Object.entries(weekend.teams)
+                .filter(([_, t]) => t.wedstrijden.length === 0)
+                .sort((a, b) => a[0].localeCompare(b[0]));
+            
+            let html = `<div style="padding:0 16px 8px;color:white;font-size:14px;font-weight:600;">${weekend.datum}</div>`;
+            
+            teamsArray.forEach(([teamId, team]) => {
+                const key = `${currentWeekend}_${teamId}`.replace(/-/g, '');
+                const beg = begeleiders[key] || {};
+                const locInfo = locaties[team.locatie] || {};
+                
+                html += `
+                    <div class="overview-card">
+                        <div class="overview-header">
+                            <span class="overview-team">${teamId}</span>
+                            <span class="overview-time">🕐 ${team.verzamelen}</span>
+                        </div>
+                        <div class="overview-location">
+                            📍 ${team.locatie}
+                            ${locInfo.adres ? `<br><a href="${locInfo.maps}" target="_blank" style="color:#0d4f6e;font-size:11px;">${locInfo.adres} →</a>` : ''}
+                        </div>
+                        <div class="overview-spelers">${team.spelers.join(' • ')}</div>
+                        ${team.info ? `<div style="background:#fef3c7;color:#92400e;padding:6px 8px;border-radius:4px;font-size:11px;margin-top:6px;">${team.info}</div>` : ''}
+                        <div class="overview-begeleiders">
+                            <span class="overview-begeleider ${beg.begeleider ? '' : 'empty'}">
+                                👤 ${beg.begeleider ? `${beg.begeleider.rol} van ${beg.begeleider.kind}` : 'Begeleider: -'}
+                            </span>
+                            <span class="overview-begeleider ${beg.scheidsrechter ? '' : 'empty'}">
+                                🏁 ${beg.scheidsrechter ? `${beg.scheidsrechter.rol} van ${beg.scheidsrechter.kind}` : 'Scheids: -'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cancelledTeams.forEach(([teamId, team]) => {
+                html += `
+                    <div class="overview-card cancelled">
+                        <div class="overview-header">
+                            <span class="overview-team" style="opacity:0.6;">${teamId}</span>
+                        </div>
+                        <div style="color:#94a3b8;font-size:12px;">${team.info || 'Geen wedstrijden'}</div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('overviewContent').innerHTML = html;
+        }
+        
+        // Render team page
+        function renderTeamPage() {
+            const weekend = appData[currentWeekend];
+            const team = weekend?.teams[currentTeam];
+            
+            if (!team) {
+                document.getElementById('teamContent').innerHTML = `
+                    <div class="card"><div class="cancelled-notice">
+                        <div class="icon">📅</div>
+                        <p><strong>${currentTeam}</strong> speelt niet op ${weekend?.datum || 'dit weekend'}</p>
+                    </div></div>
+                `;
+                return;
+            }
+            
+            if (team.wedstrijden.length === 0) {
+                document.getElementById('teamContent').innerHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-number">${currentTeam.split('-')[1]}</div>
+                            <div><div class="card-title">Switch ${currentTeam}</div><div class="card-subtitle">${team.spelers.join(' • ')}</div></div>
+                        </div>
+                        <div class="cancelled-notice">
+                            <div class="icon">❌</div>
+                            <p style="font-weight:600;">${team.info || 'Geen wedstrijden'}</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const key = `${currentWeekend}_${currentTeam}`.replace(/-/g, '');
+            const beg = begeleiders[key] || {};
+            const locInfo = locaties[team.locatie] || {};
+            
+            document.getElementById('teamContent').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-number">${currentTeam.split('-')[1]}</div>
+                        <div><div class="card-title">Switch ${currentTeam}</div><div class="card-subtitle">${team.spelers.join(' • ')}</div></div>
+                    </div>
+                    <div class="card-content">
+                        ${team.info ? `<div class="warning-box">${team.info}</div>` : ''}
+                        
+                        <div class="location-box">
+                            <div class="location-row">
+                                <div class="location-main">
+                                    <div class="location-label">📍 Locatie</div>
+                                    <div class="location-value">${team.locatie}</div>
+                                    <div class="location-address"><a href="${locInfo.maps}" target="_blank">${locInfo.adres} →</a></div>
+                                </div>
+                                <div class="location-time">
+                                    <div class="location-label">⏰ Verzamelen</div>
+                                    <div class="location-value location-big">${team.verzamelen}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="begeleiders-box">
+                            <div class="begeleiders-title">👥 Begeleiding (max 2, rest tribune)</div>
+                            <div class="begeleider-row">
+                                <div>
+                                    <div class="begeleider-label">👤 Begeleider</div>
+                                    <div class="begeleider-value ${beg.begeleider ? '' : 'empty'}">${beg.begeleider ? `${beg.begeleider.rol} van ${beg.begeleider.kind}` : 'Nog niemand'}</div>
+                                </div>
+                                ${beg.begeleider 
+                                    ? `<button class="btn-small btn-remove" onclick="removeBegeleider('${key}','begeleider')">✕</button>`
+                                    : `<button class="btn-small btn-add" onclick="openModal('begeleider')">Aanmelden</button>`
+                                }
+                            </div>
+                            <div class="begeleider-row">
+                                <div>
+                                    <div class="begeleider-label">🏁 Scheidsrechter</div>
+                                    <div class="begeleider-value ${beg.scheidsrechter ? '' : 'empty'}">${beg.scheidsrechter ? `${beg.scheidsrechter.rol} van ${beg.scheidsrechter.kind}` : 'Nog niemand'}</div>
+                                </div>
+                                ${beg.scheidsrechter 
+                                    ? `<button class="btn-small btn-remove" onclick="removeBegeleider('${key}','scheidsrechter')">✕</button>`
+                                    : `<button class="btn-small btn-add" onclick="openModal('scheidsrechter')">Aanmelden</button>`
+                                }
+                            </div>
+                        </div>
+                        
+                        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🏐 Wedstrijden</div>
+                        ${team.wedstrijden.map(w => {
+                            const editKey = `${currentWeekend}_${currentTeam}_${w.id}`;
+                            const isModified = wedstrijdEdits[editKey] && !wedstrijdEdits[editKey].deleted;
+                            return `
+                            <div class="wedstrijd ${w.thuis ? 'thuis' : 'uit'} ${isModified ? 'wed-modified' : ''}">
+                                <div class="wed-tijd">${w.tijd}</div>
+                                <div class="wed-info">
+                                    <div class="wed-type">${w.thuis ? '🏠 Thuis' : '🚗 Uit'}${isModified ? '<span class="modified-badge">GEWIJZIGD</span>' : ''}</div>
+                                    <div class="wed-tegenstander">${w.tegenstander}</div>
+                                </div>
+                                <div class="wed-veld">${w.veld}</div>
+                                ${w.thuis ? '<span class="wed-tellen">TELLEN</span>' : ''}
+                                <div class="wed-actions">
+                                    <button class="wed-edit" onclick="openEdit('${w.id}','${w.tegenstander.replace(/'/g, "\\'")}','${w.veld}')">✏️</button>
+                                    <button class="wed-delete" onclick="deleteWedstrijd('${w.id}')">🗑️</button>
+                                </div>
+                            </div>
+                        `}).join('')}
+                        <div class="legenda">
+                            <div class="legenda-item"><div class="legenda-color thuis"></div>Thuis = wij tellen</div>
+                            <div class="legenda-item"><div class="legenda-color uit"></div>Uit = zij tellen</div>
+                        </div>
+                        <button class="print-btn" onclick="printTeam()">🖨️ Print / Opslaan als PDF</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render locaties
+        function renderLocaties() {
+            document.getElementById('locatiesContent').innerHTML = Object.entries(locaties).map(([name, info]) => `
+                <div style="background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:8px;">
+                    <div style="font-size:13px;font-weight:600;color:#1e293b;">${name}</div>
+                    <a href="${info.maps}" target="_blank" style="font-size:12px;color:#0d4f6e;">${info.adres} →</a>
+                </div>
+            `).join('');
+        }
+        
+        // Main render
+        function render() {
+            renderWeekendSelectors();
+            renderTeamSelector();
+            renderOverview();
+            renderTeamPage();
+        }
+        
+        // Navigation
+        function selectPage(page) {
+            currentPage = page;
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
+            document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
+        }
+        
+        function selectWeekend(w) {
+            currentWeekend = w;
+            // Reset team if not available
+            if (!appData[w]?.teams[currentTeam]) {
+                currentTeam = Object.keys(appData[w]?.teams || {})[0] || 'L3-1';
+            }
+            render();
+        }
+        
+        function selectTeam(t) {
+            currentTeam = t;
+            render();
+        }
+        
+        // Modal functions
+        function openModal(type) {
+            formType = type;
+            selectedRol = null;
+            selectedKind = null;
+            
+            const team = appData[currentWeekend]?.teams[currentTeam];
+            if (!team) return;
+            
+            document.getElementById('formTitle').textContent = `Aanmelden als ${type}`;
+            document.getElementById('rolOptions').innerHTML = ['Vader', 'Moeder'].map(r => 
+                `<div class="form-option" onclick="selectRol('${r}')">${r}</div>`
+            ).join('');
+            document.getElementById('kindOptions').innerHTML = team.spelers.map(k => 
+                `<div class="form-option" onclick="selectKind('${k}')">${k}</div>`
+            ).join('');
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('begeleiderModal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('begeleiderModal').classList.remove('show');
+        }
+        
+        function selectRol(r) {
+            selectedRol = r;
+            document.querySelectorAll('#rolOptions .form-option').forEach(o => 
+                o.classList.toggle('selected', o.textContent === r));
+            document.getElementById('submitBtn').disabled = !(selectedRol && selectedKind);
+        }
+        
+        function selectKind(k) {
+            selectedKind = k;
+            document.querySelectorAll('#kindOptions .form-option').forEach(o => 
+                o.classList.toggle('selected', o.textContent === k));
+            document.getElementById('submitBtn').disabled = !(selectedRol && selectedKind);
+        }
+        
+        function submitBegeleider() {
+            const key = `${currentWeekend}_${currentTeam}`.replace(/-/g, '');
+            saveBegeleider(key, formType, { rol: selectedRol, kind: selectedKind });
+            closeModal();
+            render();
+        }
+        
+        // Edit functions
+        function openEdit(wedId, tegenstander, veld) {
+            editingWedstrijd = wedId;
+            document.getElementById('editTegenstander').value = tegenstander;
+            document.getElementById('editVeld').value = veld;
+            document.getElementById('editModal').classList.add('show');
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+        
+        function saveEdit() {
+            const tegenstander = document.getElementById('editTegenstander').value;
+            const veld = document.getElementById('editVeld').value;
+            saveWedstrijdEdit(currentWeekend, currentTeam, editingWedstrijd, { tegenstander, veld });
+            closeEditModal();
+        }
+        
+        function deleteWedstrijd(wedId) {
+            if (confirm('Wedstrijd verwijderen?')) {
+                saveWedstrijdEdit(currentWeekend, currentTeam, wedId, { deleted: true });
+            }
+        }
+        
+        // Toggle functions
+        function toggleInfo(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('show');
+            document.getElementById(id + 'Arrow').textContent = el.classList.contains('show') ? '▲' : '▼';
+        }
+        
+        function toggleSpelregels() {
+            const el = document.getElementById('spelregelsContent');
+            el.classList.toggle('show');
+            document.getElementById('spelregelsArrow').textContent = el.classList.contains('show') ? '▲' : '▼';
+        }
+        
+        // Print function
+        function printTeam() {
+            const weekend = appData[currentWeekend];
+            const team = weekend?.teams[currentTeam];
+            if (!team) return;
+            
+            document.getElementById('printSubtitle').textContent = 
+                `${currentTeam} • ${team.spelers.join(', ')} • ${weekend.datum}`;
+            
+            window.print();
+        }
+        
+        // Init
+        document.querySelectorAll('.nav-tab').forEach(t => {
+            t.addEventListener('click', () => selectPage(t.dataset.page));
+        });
+        
+        document.getElementById('todayDate').textContent = formatToday();
+        updateCountdown();
+        setInterval(updateCountdown, 60000); // Update elke minuut
+        currentWeekend = getCurrentWeekend();
+        renderLocaties();
+        loadData();
+        render();
+        
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>
