@@ -765,7 +765,7 @@
                 <div class="info-item"><span class="info-icon">⏰</span><span>15 minuten van tevoren verzamelen in de zaal</span></div>
                 <div class="info-item"><span class="info-icon">👕</span><span>Switch shirt + zwart broekje meenemen</span></div>
                 <div class="info-item"><span class="info-icon">🏠</span><span>Thuisteam levert teller (handtellers aanwezig)</span></div>
-                <div class="info-item"><span class="info-icon">👥</span><span>1 begeleider + 1 scheidsrechter per team</span></div>
+                <div class="info-item"><span class="info-icon">👥</span><span>1 begeleider + 1 teller per team</span></div>
                 <div class="info-item"><span class="info-icon">🪑</span><span>Andere ouders op de tribune</span></div>
             </div>
         </div>
@@ -787,7 +787,7 @@
                 <div class="info-item"><span class="info-icon">⏰</span><span>15 minuten van tevoren verzamelen</span></div>
                 <div class="info-item"><span class="info-icon">👕</span><span>Switch shirt + zwart broekje meenemen</span></div>
                 <div class="info-item"><span class="info-icon">🏠</span><span>Thuisteam levert teller</span></div>
-                <div class="info-item"><span class="info-icon">👥</span><span>1 begeleider + 1 scheidsrechter</span></div>
+                <div class="info-item"><span class="info-icon">👥</span><span>1 begeleider + 1 teller</span></div>
                 <div class="info-item"><span class="info-icon">🪑</span><span>Andere ouders op tribune</span></div>
             </div>
         </div>
@@ -838,7 +838,7 @@
                     <p style="font-size:12px; font-weight:600; color:#1e293b; margin-bottom:6px;">📱 iPhone / iPad:</p>
                     <p style="font-size:11px; color:#64748b;">
                         1. Tik op <strong>Delen</strong> (vierkantje met pijl)<br>
-                        2. Scroll en tik <strong>"Zet op beginscherm"</strong><br>
+                        2. Tik op <strong>···</strong> Meer, scroll naar beneden en tik <strong>"Zet op beginscherm"</strong><br>
                         3. Tik <strong>"Voeg toe"</strong>
                     </p>
                 </div>
@@ -1380,8 +1380,8 @@
                             <span class="overview-begeleider ${beg.begeleider ? '' : 'empty'}">
                                 👤 ${beg.begeleider ? `${beg.begeleider.rol} van ${beg.begeleider.kind}` : 'Begeleider: -'}
                             </span>
-                            <span class="overview-begeleider ${beg.scheidsrechter ? '' : 'empty'}">
-                                🏁 ${beg.scheidsrechter ? `${beg.scheidsrechter.rol} van ${beg.scheidsrechter.kind}` : 'Scheids: -'}
+                            <span class="overview-begeleider ${beg.teller ? '' : 'empty'}">
+                                🏁 ${beg.teller ? `${beg.teller.rol} van ${beg.teller.kind}` : 'Teller: -'}
                             </span>
                         </div>
                     </div>
@@ -1474,12 +1474,12 @@
                             </div>
                             <div class="begeleider-row">
                                 <div>
-                                    <div class="begeleider-label">🏁 Scheidsrechter</div>
-                                    <div class="begeleider-value ${beg.scheidsrechter ? '' : 'empty'}">${beg.scheidsrechter ? `${beg.scheidsrechter.rol} van ${beg.scheidsrechter.kind}` : 'Nog niemand'}</div>
+                                    <div class="begeleider-label">🏁 Teller</div>
+                                    <div class="begeleider-value ${beg.teller ? '' : 'empty'}">${beg.teller ? `${beg.teller.rol} van ${beg.teller.kind}` : 'Nog niemand'}</div>
                                 </div>
-                                ${beg.scheidsrechter 
-                                    ? `<button class="btn-small btn-remove" onclick="removeBegeleider('${key}','scheidsrechter')">✕</button>`
-                                    : `<button class="btn-small btn-add" onclick="openModal('scheidsrechter')">Aanmelden</button>`
+                                ${beg.teller 
+                                    ? `<button class="btn-small btn-remove" onclick="removeBegeleider('${key}','teller')">✕</button>`
+                                    : `<button class="btn-small btn-add" onclick="openModal('teller')">Aanmelden</button>`
                                 }
                             </div>
                         </div>
