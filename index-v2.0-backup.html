@@ -457,30 +457,6 @@
             padding: 2px 5px;
             border-radius: 3px;
         }
-        .wed-score {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-        .wed-score.win { background: #22c55e; color: white; }
-        .wed-score.loss { background: #ef4444; color: white; }
-        .wed-score.draw { background: #f59e0b; color: white; }
-        
-        /* Verwijderde/geannuleerde wedstrijd */
-        .wedstrijd.deleted {
-            background: #fee2e2 !important;
-            border-left-color: #ef4444 !important;
-            opacity: 0.7;
-        }
-        .wedstrijd.deleted .wed-tegenstander {
-            text-decoration: line-through;
-            color: #dc2626;
-        }
-        .wedstrijd.deleted .wed-tijd,
-        .wedstrijd.deleted .wed-type {
-            color: #dc2626;
-        }
         .wed-actions {
             display: flex;
             gap: 4px;
@@ -664,7 +640,7 @@
         
         /* Print button */
         .print-btn {
-            display: block;
+            display: none;
             width: 100%;
             padding: 12px;
             border: none;
@@ -675,6 +651,9 @@
             font-weight: 600;
             cursor: pointer;
             margin-top: 12px;
+        }
+        @media (min-width: 768px) {
+            .print-btn { display: block; }
         }
         
         /* Print styling */
@@ -937,19 +916,6 @@
                 <label class="form-label">Veld:</label>
                 <input type="text" class="edit-input" id="editVeld">
             </div>
-            <div style="border-top:1px solid #e2e8f0;margin:12px 0;padding-top:12px;">
-                <div class="form-label" style="font-weight:600;margin-bottom:8px;">📊 Uitslag</div>
-                <div style="display:flex;gap:8px;">
-                    <div style="flex:1;">
-                        <label class="form-label" id="editScoreHomeLabel">Switch:</label>
-                        <input type="number" class="edit-input" id="editScoreHome" min="0" max="99" placeholder="-">
-                    </div>
-                    <div style="flex:1;">
-                        <label class="form-label" id="editScoreAwayLabel">Tegenstander:</label>
-                        <input type="number" class="edit-input" id="editScoreAway" min="0" max="99" placeholder="-">
-                    </div>
-                </div>
-            </div>
             <div class="form-actions">
                 <button class="btn-cancel" onclick="closeEditModal()">Annuleren</button>
                 <button class="btn-submit" onclick="saveEdit()">Opslaan</button>
@@ -960,7 +926,7 @@
     <div class="footer">
         Switch Volleybal • Hooglanderveen<br>
         Volley Stars Level 3 - Pass Volley<br>
-        <span style="opacity:0.5;">v2.1</span>
+        <span style="opacity:0.5;">v2.0</span>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -1166,7 +1132,6 @@
         let appData = JSON.parse(JSON.stringify(baseData));
         let begeleiders = {};
         let wedstrijdEdits = {};
-        let scores = {};
         let currentWeekend = '10-jan';
         let currentTeam = 'L3-1';
         let currentPage = 'teams';
@@ -1175,16 +1140,6 @@
         let editingWedstrijd = null;
         let selectedRol = null;
         let selectedKind = null;
-        
-        // Shorten team name: "AVV Keistad L3-5" → "Keistad L3-5"
-        function shortenTeam(name) {
-            const parts = name.split(' ');
-            const l3Index = parts.findIndex(p => p.startsWith('L3'));
-            if (l3Index > 0) {
-                return parts.slice(l3Index - 1).join(' ');
-            }
-            return name;
-        }
         
         // Determine current/next weekend
         function getCurrentWeekend() {
@@ -1299,12 +1254,6 @@
                 render();
                 updateStatus('ok', 'Verbonden - data wordt live gesynchroniseerd');
             });
-            
-            // Load scores
-            db.ref('scores').on('value', snap => {
-                scores = snap.val() || {};
-                render();
-            });
         }
         
         // Apply edits to data
@@ -1317,7 +1266,8 @@
                     const wed = appData[weekend].teams[team].wedstrijden.find(w => w.id === wedId);
                     if (wed) {
                         if (edit.deleted) {
-                            wed.deleted = true;
+                            appData[weekend].teams[team].wedstrijden = 
+                                appData[weekend].teams[team].wedstrijden.filter(w => w.id !== wedId);
                         } else {
                             if (edit.tegenstander) wed.tegenstander = edit.tegenstander;
                             if (edit.veld) wed.veld = edit.veld;
@@ -1539,28 +1489,14 @@
                             const editKey = `${currentWeekend}_${currentTeam}_${w.id}`;
                             const isModified = wedstrijdEdits[editKey] && !wedstrijdEdits[editKey].deleted;
                             return `
-                            <div class="wedstrijd ${w.thuis ? 'thuis' : 'uit'} ${isModified ? 'wed-modified' : ''} ${w.deleted ? 'deleted' : ''}">
+                            <div class="wedstrijd ${w.thuis ? 'thuis' : 'uit'} ${isModified ? 'wed-modified' : ''}">
                                 <div class="wed-tijd">${w.tijd}</div>
                                 <div class="wed-info">
                                     <div class="wed-type">${w.thuis ? '🏠 Thuis' : '🚗 Uit'}${isModified ? '<span class="modified-badge">GEWIJZIGD</span>' : ''}</div>
-                                    <div class="wed-tegenstander">${shortenTeam(w.tegenstander)}</div>
+                                    <div class="wed-tegenstander">${w.tegenstander}</div>
                                 </div>
                                 <div class="wed-veld">${w.veld}</div>
-                                ${(() => {
-                                    const scoreKey = currentWeekend + '_' + currentTeam + '_' + w.id;
-                                    const score = scores[scoreKey];
-                                    if (score && score.switchScore !== undefined && score.tegenstanderScore !== undefined) {
-                                        const won = score.switchScore > score.tegenstanderScore;
-                                        const draw = score.switchScore === score.tegenstanderScore;
-                                        const cls = draw ? 'draw' : (won ? 'win' : 'loss');
-                                        // UIT: tegenstander-Switch, THUIS: Switch-tegenstander
-                                        const scoreText = w.thuis 
-                                            ? score.switchScore + '-' + score.tegenstanderScore
-                                            : score.tegenstanderScore + '-' + score.switchScore;
-                                        return '<span class="wed-score ' + cls + '">' + scoreText + '</span>';
-                                    }
-                                    return w.thuis ? '<span class="wed-tellen">TELLEN</span>' : '';
-                                })()}
+                                ${w.thuis ? '<span class="wed-tellen">TELLEN</span>' : ''}
                                 <div class="wed-actions">
                                     <button class="wed-edit" onclick="openEdit('${w.id}','${w.tegenstander.replace(/'/g, "\\'")}','${w.veld}')">✏️</button>
                                     <button class="wed-delete" onclick="deleteWedstrijd('${w.id}')">🗑️</button>
@@ -1666,15 +1602,6 @@
             editingWedstrijd = wedId;
             document.getElementById('editTegenstander').value = tegenstander;
             document.getElementById('editVeld').value = veld;
-            
-            // Load existing score
-            const scoreKey = `${currentWeekend}_${currentTeam}_${wedId}`;
-            const existingScore = scores[scoreKey];
-            document.getElementById('editScoreHomeLabel').textContent = `Switch ${currentTeam}:`;
-            document.getElementById('editScoreAwayLabel').textContent = `${tegenstander.split(' ')[0]}:`;
-            document.getElementById('editScoreHome').value = existingScore?.switchScore ?? '';
-            document.getElementById('editScoreAway').value = existingScore?.tegenstanderScore ?? '';
-            
             document.getElementById('editModal').classList.add('show');
         }
         
@@ -1695,30 +1622,7 @@
                 // Save the edit
                 saveWedstrijdEdit(currentWeekend, currentTeam, editingWedstrijd, { tegenstander, veld });
             }
-            
-            // Save score if entered
-            const scoreHome = document.getElementById('editScoreHome').value;
-            const scoreAway = document.getElementById('editScoreAway').value;
-            const scoreKey = `${currentWeekend}_${currentTeam}_${editingWedstrijd}`;
-            
-            if (scoreHome !== '' && scoreAway !== '') {
-                scores[scoreKey] = { 
-                    switchScore: parseInt(scoreHome), 
-                    tegenstanderScore: parseInt(scoreAway) 
-                };
-                if (firebaseEnabled && db) {
-                    db.ref('scores/' + scoreKey).set(scores[scoreKey]);
-                }
-            } else if (scoreHome === '' && scoreAway === '' && scores[scoreKey]) {
-                // Clear score if both empty
-                delete scores[scoreKey];
-                if (firebaseEnabled && db) {
-                    db.ref('scores/' + scoreKey).remove();
-                }
-            }
-            
             closeEditModal();
-            render();
         }
         
         function deleteWedstrijd(wedId) {
