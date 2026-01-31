@@ -456,6 +456,26 @@
             color: white;
             padding: 2px 5px;
             border-radius: 3px;
+            cursor: pointer;
+        }
+        .wed-score {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .wed-score.win {
+            background: #22c55e;
+            color: white;
+        }
+        .wed-score.loss {
+            background: #ef4444;
+            color: white;
+        }
+        .wed-score.draw {
+            background: #f59e0b;
+            color: white;
         }
         .wed-actions {
             display: flex;
@@ -923,6 +943,25 @@
         </div>
     </div>
     
+    <!-- Score Modal -->
+    <div class="form-modal" id="scoreModal">
+        <div class="form-box">
+            <div class="form-title" id="scoreTitle">Uitslag invoeren</div>
+            <div class="form-row">
+                <label class="form-label" id="scoreHomeLabel">Switch:</label>
+                <input type="number" class="edit-input" id="scoreHome" min="0" max="99" placeholder="0">
+            </div>
+            <div class="form-row">
+                <label class="form-label" id="scoreAwayLabel">Tegenstander:</label>
+                <input type="number" class="edit-input" id="scoreAway" min="0" max="99" placeholder="0">
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeScoreModal()">Annuleren</button>
+                <button class="btn-submit" onclick="saveScore()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="footer">
         Switch Volleybal • Hooglanderveen<br>
         Volley Stars Level 3 - Pass Volley<br>
@@ -1132,6 +1171,7 @@
         let appData = JSON.parse(JSON.stringify(baseData));
         let begeleiders = {};
         let wedstrijdEdits = {};
+        let scores = {};
         let currentWeekend = '10-jan';
         let currentTeam = 'L3-1';
         let currentPage = 'teams';
@@ -1140,6 +1180,8 @@
         let editingWedstrijd = null;
         let selectedRol = null;
         let selectedKind = null;
+        let scoringWedstrijd = null;
+        let scoringThuis = null;
         
         // Determine current/next weekend
         function getCurrentWeekend() {
@@ -1253,6 +1295,12 @@
                 applyEdits();
                 render();
                 updateStatus('ok', 'Verbonden - data wordt live gesynchroniseerd');
+            });
+            
+            // Load scores
+            db.ref('scores').on('value', snap => {
+                scores = snap.val() || {};
+                render();
             });
         }
         
@@ -1496,7 +1544,19 @@
                                     <div class="wed-tegenstander">${w.tegenstander}</div>
                                 </div>
                                 <div class="wed-veld">${w.veld}</div>
-                                ${w.thuis ? '<span class="wed-tellen">TELLEN</span>' : ''}
+                                ${(() => {
+                                    const scoreKey = \`\${currentWeekend}_\${currentTeam}_\${w.id}\`;
+                                    const score = scores[scoreKey];
+                                    if (score && (score.switchScore !== undefined || score.tegenstanderScore !== undefined)) {
+                                        const switchWon = score.switchScore > score.tegenstanderScore;
+                                        const isDraw = score.switchScore === score.tegenstanderScore;
+                                        const resultClass = isDraw ? 'draw' : (switchWon ? 'win' : 'loss');
+                                        return \`<span class="wed-score \${resultClass}" onclick="openScoreModal('\${w.id}','\${w.tegenstander.replace(/'/g, "\\\\'")}',\${w.thuis})">\${score.switchScore}-\${score.tegenstanderScore}</span>\`;
+                                    } else if (w.thuis) {
+                                        return \`<span class="wed-tellen" onclick="openScoreModal('\${w.id}','\${w.tegenstander.replace(/'/g, "\\\\'")}',\${w.thuis})">TELLEN</span>\`;
+                                    }
+                                    return '';
+                                })()}
                                 <div class="wed-actions">
                                     <button class="wed-edit" onclick="openEdit('${w.id}','${w.tegenstander.replace(/'/g, "\\'")}','${w.veld}')">✏️</button>
                                     <button class="wed-delete" onclick="deleteWedstrijd('${w.id}')">🗑️</button>
@@ -1629,6 +1689,40 @@
             if (confirm('Wedstrijd verwijderen?')) {
                 saveWedstrijdEdit(currentWeekend, currentTeam, wedId, { deleted: true });
             }
+        }
+        
+        // Score functions
+        function openScoreModal(wedId, tegenstander, thuis) {
+            scoringWedstrijd = wedId;
+            scoringThuis = thuis;
+            const key = `${currentWeekend}_${currentTeam}_${wedId}`;
+            const existing = scores[key];
+            
+            document.getElementById('scoreTitle').textContent = 'Uitslag invoeren';
+            document.getElementById('scoreHomeLabel').textContent = `Switch ${currentTeam}:`;
+            document.getElementById('scoreAwayLabel').textContent = `${tegenstander}:`;
+            document.getElementById('scoreHome').value = existing ? existing.switchScore : '';
+            document.getElementById('scoreAway').value = existing ? existing.tegenstanderScore : '';
+            document.getElementById('scoreModal').classList.add('show');
+        }
+        
+        function closeScoreModal() {
+            document.getElementById('scoreModal').classList.remove('show');
+        }
+        
+        function saveScore() {
+            const switchScore = parseInt(document.getElementById('scoreHome').value) || 0;
+            const tegenstanderScore = parseInt(document.getElementById('scoreAway').value) || 0;
+            const key = `${currentWeekend}_${currentTeam}_${scoringWedstrijd}`;
+            
+            scores[key] = { switchScore, tegenstanderScore };
+            
+            if (firebaseEnabled && db) {
+                db.ref('scores/' + key).set(scores[key]);
+            }
+            
+            closeScoreModal();
+            render();
         }
         
         // Toggle functions
