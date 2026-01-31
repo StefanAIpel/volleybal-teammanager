@@ -457,6 +457,15 @@
             padding: 2px 5px;
             border-radius: 3px;
         }
+        .wed-score {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .wed-score.win { background: #22c55e; color: white; }
+        .wed-score.loss { background: #ef4444; color: white; }
+        .wed-score.draw { background: #f59e0b; color: white; }
         .wed-actions {
             display: flex;
             gap: 4px;
@@ -916,6 +925,19 @@
                 <label class="form-label">Veld:</label>
                 <input type="text" class="edit-input" id="editVeld">
             </div>
+            <div style="border-top:1px solid #e2e8f0;margin:12px 0;padding-top:12px;">
+                <div class="form-label" style="font-weight:600;margin-bottom:8px;">📊 Uitslag</div>
+                <div style="display:flex;gap:8px;">
+                    <div style="flex:1;">
+                        <label class="form-label" id="editScoreHomeLabel">Switch:</label>
+                        <input type="number" class="edit-input" id="editScoreHome" min="0" max="99" placeholder="-">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="form-label" id="editScoreAwayLabel">Tegenstander:</label>
+                        <input type="number" class="edit-input" id="editScoreAway" min="0" max="99" placeholder="-">
+                    </div>
+                </div>
+            </div>
             <div class="form-actions">
                 <button class="btn-cancel" onclick="closeEditModal()">Annuleren</button>
                 <button class="btn-submit" onclick="saveEdit()">Opslaan</button>
@@ -1132,6 +1154,7 @@
         let appData = JSON.parse(JSON.stringify(baseData));
         let begeleiders = {};
         let wedstrijdEdits = {};
+        let scores = {};
         let currentWeekend = '10-jan';
         let currentTeam = 'L3-1';
         let currentPage = 'teams';
@@ -1253,6 +1276,12 @@
                 applyEdits();
                 render();
                 updateStatus('ok', 'Verbonden - data wordt live gesynchroniseerd');
+            });
+            
+            // Load scores
+            db.ref('scores').on('value', snap => {
+                scores = snap.val() || {};
+                render();
             });
         }
         
@@ -1496,7 +1525,17 @@
                                     <div class="wed-tegenstander">${w.tegenstander}</div>
                                 </div>
                                 <div class="wed-veld">${w.veld}</div>
-                                ${w.thuis ? '<span class="wed-tellen">TELLEN</span>' : ''}
+                                ${(() => {
+                                    const scoreKey = currentWeekend + '_' + currentTeam + '_' + w.id;
+                                    const score = scores[scoreKey];
+                                    if (score && score.switchScore !== undefined && score.tegenstanderScore !== undefined) {
+                                        const won = score.switchScore > score.tegenstanderScore;
+                                        const draw = score.switchScore === score.tegenstanderScore;
+                                        const cls = draw ? 'draw' : (won ? 'win' : 'loss');
+                                        return '<span class="wed-score ' + cls + '">' + score.switchScore + '-' + score.tegenstanderScore + '</span>';
+                                    }
+                                    return w.thuis ? '<span class="wed-tellen">TELLEN</span>' : '';
+                                })()}
                                 <div class="wed-actions">
                                     <button class="wed-edit" onclick="openEdit('${w.id}','${w.tegenstander.replace(/'/g, "\\'")}','${w.veld}')">✏️</button>
                                     <button class="wed-delete" onclick="deleteWedstrijd('${w.id}')">🗑️</button>
@@ -1602,6 +1641,15 @@
             editingWedstrijd = wedId;
             document.getElementById('editTegenstander').value = tegenstander;
             document.getElementById('editVeld').value = veld;
+            
+            // Load existing score
+            const scoreKey = `${currentWeekend}_${currentTeam}_${wedId}`;
+            const existingScore = scores[scoreKey];
+            document.getElementById('editScoreHomeLabel').textContent = `Switch ${currentTeam}:`;
+            document.getElementById('editScoreAwayLabel').textContent = `${tegenstander.split(' ')[0]}:`;
+            document.getElementById('editScoreHome').value = existingScore?.switchScore ?? '';
+            document.getElementById('editScoreAway').value = existingScore?.tegenstanderScore ?? '';
+            
             document.getElementById('editModal').classList.add('show');
         }
         
@@ -1622,7 +1670,30 @@
                 // Save the edit
                 saveWedstrijdEdit(currentWeekend, currentTeam, editingWedstrijd, { tegenstander, veld });
             }
+            
+            // Save score if entered
+            const scoreHome = document.getElementById('editScoreHome').value;
+            const scoreAway = document.getElementById('editScoreAway').value;
+            const scoreKey = `${currentWeekend}_${currentTeam}_${editingWedstrijd}`;
+            
+            if (scoreHome !== '' && scoreAway !== '') {
+                scores[scoreKey] = { 
+                    switchScore: parseInt(scoreHome), 
+                    tegenstanderScore: parseInt(scoreAway) 
+                };
+                if (firebaseEnabled && db) {
+                    db.ref('scores/' + scoreKey).set(scores[scoreKey]);
+                }
+            } else if (scoreHome === '' && scoreAway === '' && scores[scoreKey]) {
+                // Clear score if both empty
+                delete scores[scoreKey];
+                if (firebaseEnabled && db) {
+                    db.ref('scores/' + scoreKey).remove();
+                }
+            }
+            
             closeEditModal();
+            render();
         }
         
         function deleteWedstrijd(wedId) {
