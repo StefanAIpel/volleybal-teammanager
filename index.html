@@ -936,6 +936,19 @@
                 <label class="form-label">Veld:</label>
                 <input type="text" class="edit-input" id="editVeld">
             </div>
+            <div style="border-top:1px solid #e2e8f0;margin:12px 0;padding-top:12px;">
+                <div class="form-label" style="font-weight:600;margin-bottom:8px;">📊 Uitslag (na wedstrijd)</div>
+                <div style="display:flex;gap:8px;">
+                    <div style="flex:1;">
+                        <label class="form-label" id="editScoreHomeLabel">Switch:</label>
+                        <input type="number" class="edit-input" id="editScoreHome" min="0" max="99" placeholder="-">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="form-label" id="editScoreAwayLabel">Tegenstander:</label>
+                        <input type="number" class="edit-input" id="editScoreAway" min="0" max="99" placeholder="-">
+                    </div>
+                </div>
+            </div>
             <div class="form-actions">
                 <button class="btn-cancel" onclick="closeEditModal()">Annuleren</button>
                 <button class="btn-submit" onclick="saveEdit()">Opslaan</button>
@@ -1662,6 +1675,15 @@
             editingWedstrijd = wedId;
             document.getElementById('editTegenstander').value = tegenstander;
             document.getElementById('editVeld').value = veld;
+            
+            // Load existing score
+            const scoreKey = `${currentWeekend}_${currentTeam}_${wedId}`;
+            const existingScore = scores[scoreKey];
+            document.getElementById('editScoreHomeLabel').textContent = `Switch ${currentTeam}:`;
+            document.getElementById('editScoreAwayLabel').textContent = `${tegenstander.split(' ')[0]}:`;
+            document.getElementById('editScoreHome').value = existingScore ? existingScore.switchScore : '';
+            document.getElementById('editScoreAway').value = existingScore ? existingScore.tegenstanderScore : '';
+            
             document.getElementById('editModal').classList.add('show');
         }
         
@@ -1682,7 +1704,24 @@
                 // Save the edit
                 saveWedstrijdEdit(currentWeekend, currentTeam, editingWedstrijd, { tegenstander, veld });
             }
+            
+            // Save score if entered
+            const scoreHome = document.getElementById('editScoreHome').value;
+            const scoreAway = document.getElementById('editScoreAway').value;
+            const scoreKey = `${currentWeekend}_${currentTeam}_${editingWedstrijd}`;
+            
+            if (scoreHome !== '' || scoreAway !== '') {
+                scores[scoreKey] = { 
+                    switchScore: parseInt(scoreHome) || 0, 
+                    tegenstanderScore: parseInt(scoreAway) || 0 
+                };
+                if (firebaseEnabled && db) {
+                    db.ref('scores/' + scoreKey).set(scores[scoreKey]);
+                }
+            }
+            
             closeEditModal();
+            render();
         }
         
         function deleteWedstrijd(wedId) {
