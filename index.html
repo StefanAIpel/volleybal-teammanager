@@ -601,6 +601,70 @@
             background: linear-gradient(135deg, #ff6b35, #ff8c42);
         }
         
+        /* Pincode Modal */
+        .pin-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .pin-modal.active { display: flex; }
+        .pin-box {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 280px;
+            text-align: center;
+        }
+        .pin-box h3 { 
+            color: #1e3a5f;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        .pin-box p {
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+        .pin-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 4px;
+            margin-bottom: 16px;
+        }
+        .pin-box input:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+        .pin-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .pin-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .pin-btn.cancel {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+        .pin-btn.ok {
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            color: white;
+        }
+        
         /* Status */
         .status-bar {
             margin: 0 16px 12px;
@@ -1171,6 +1235,8 @@
         let currentTeam = 'L3-1';
         let currentPage = 'teams';
         let adminMode = false;
+        let isAuth = false;
+        const EDIT_PIN = "volley";
         let formType = null;
         let editingWedstrijd = null;
         let selectedRol = null;
@@ -1358,9 +1424,30 @@
         
         // Toggle admin mode
         function toggleAdmin() {
+            if (!adminMode && !isAuth) {
+                document.getElementById('pinModal').classList.add('active');
+                document.getElementById('pinInput').focus();
+                return;
+            }
             adminMode = !adminMode;
             document.body.classList.toggle('admin-mode', adminMode);
             document.getElementById('adminToggle').classList.toggle('active', adminMode);
+        }
+        
+        function checkPin() {
+            if (document.getElementById('pinInput').value === EDIT_PIN) {
+                isAuth = true;
+                closePinModal();
+                toggleAdmin();
+            } else {
+                alert('Onjuiste pincode');
+                document.getElementById('pinInput').value = '';
+            }
+        }
+        
+        function closePinModal() {
+            document.getElementById('pinModal').classList.remove('active');
+            document.getElementById('pinInput').value = '';
         }
         
         // Render weekend selectors
@@ -1770,5 +1857,18 @@
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
     </script>
+    <!-- Pincode Modal -->
+    <div class="pin-modal" id="pinModal">
+        <div class="pin-box">
+            <h3>🔒 Pincode</h3>
+            <p>Voor begeleiders en teammanagers</p>
+            <input type="password" id="pinInput" placeholder="••••" maxlength="6" 
+                   onkeypress="if(event.key==='Enter')checkPin()">
+            <div class="pin-buttons">
+                <button class="pin-btn cancel" onclick="closePinModal()">Annuleren</button>
+                <button class="pin-btn ok" onclick="checkPin()">OK</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
