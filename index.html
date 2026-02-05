@@ -332,6 +332,55 @@
             margin-bottom: 10px;
         }
         
+        /* Opmerkingen */
+        .opmerking-box {
+            background: #fef3c7;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #f59e0b;
+        }
+        .opmerking-box.empty {
+            background: #f8fafc;
+            border-left: none;
+            padding: 8px;
+        }
+        .opmerking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .opmerking-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #92400e;
+        }
+        .opmerking-text {
+            font-size: 13px;
+            color: #1e293b;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .btn-add-opmerking {
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            color: #64748b;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-add-opmerking:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .btn-edit {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
         /* Begeleiders */
         .begeleiders-box {
             background: #fff7ed;
@@ -1021,10 +1070,25 @@
         </div>
     </div>
     
+    <!-- Opmerking Modal -->
+    <div class="form-modal" id="opmerkingModal">
+        <div class="form-content">
+            <div class="form-title">📝 Opmerking</div>
+            <div class="form-body">
+                <label class="form-label">Opmerking voor dit team deze week:</label>
+                <textarea class="edit-input" id="opmerkingText" rows="4" placeholder="Bijv. 'Let op: aangepaste verzameltijd' of 'Wedstrijd 3 vervalt'"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="document.getElementById('opmerkingModal').style.display='none'">Annuleren</button>
+                <button class="btn-submit" onclick="saveOpmerkingFromModal()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="footer">
         Switch Volleybal • Hooglanderveen<br>
         Volley Stars Level 3 - Pass Volley<br>
-        <span style="opacity:0.5;">v2.1</span>
+        <span style="opacity:0.5;">v2.2</span>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -1229,6 +1293,7 @@
         
         let appData = JSON.parse(JSON.stringify(baseData));
         let begeleiders = {};
+        let opmerkingen = {};
         let wedstrijdEdits = {};
         let scores = {};
         let currentWeekend = '10-jan';
@@ -1358,6 +1423,12 @@
                 updateStatus('error', 'Kon data niet laden. Probeer te verversen.');
             });
             
+            // Load opmerkingen
+            db.ref('opmerkingen').on('value', snap => {
+                opmerkingen = snap.val() || {};
+                render();
+            });
+            
             // Load wedstrijd edits
             db.ref('wedstrijdEdits').on('value', snap => {
                 wedstrijdEdits = snap.val() || {};
@@ -1412,6 +1483,44 @@
                 }
             }
             render();
+        }
+        
+        // Save opmerking
+        function saveOpmerking(key, text) {
+            opmerkingen[key] = text;
+            if (firebaseEnabled && db) {
+                db.ref('opmerkingen/' + key).set(text);
+            }
+            render();
+        }
+        
+        // Remove opmerking
+        function removeOpmerking(key) {
+            delete opmerkingen[key];
+            if (firebaseEnabled && db) {
+                db.ref('opmerkingen/' + key).remove();
+            }
+            render();
+        }
+        
+        // Open opmerking modal
+        function openOpmerkingModal() {
+            const key = `${currentWeekend}_${currentTeam}`.replace(/-/g, '');
+            const currentText = opmerkingen[key] || '';
+            document.getElementById('opmerkingText').value = currentText;
+            document.getElementById('opmerkingModal').style.display = 'flex';
+        }
+        
+        // Save opmerking from modal
+        function saveOpmerkingFromModal() {
+            const key = `${currentWeekend}_${currentTeam}`.replace(/-/g, '');
+            const text = document.getElementById('opmerkingText').value.trim();
+            if (text) {
+                saveOpmerking(key, text);
+            } else {
+                removeOpmerking(key);
+            }
+            document.getElementById('opmerkingModal').style.display = 'none';
         }
         
         // Save wedstrijd edit
@@ -1596,6 +1705,27 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        ${(() => {
+                            const opmKey = key;
+                            const opmerking = opmerkingen[opmKey];
+                            if (opmerking) {
+                                return `
+                                <div class="opmerking-box">
+                                    <div class="opmerking-header">
+                                        <span class="opmerking-label">📝 Opmerking</span>
+                                        ${isAdmin ? `<button class="btn-small btn-edit" onclick="openOpmerkingModal()">✏️</button>` : ''}
+                                    </div>
+                                    <div class="opmerking-text">${opmerking}</div>
+                                </div>`;
+                            } else if (isAdmin) {
+                                return `
+                                <div class="opmerking-box empty">
+                                    <button class="btn-add-opmerking" onclick="openOpmerkingModal()">📝 Opmerking toevoegen</button>
+                                </div>`;
+                            }
+                            return '';
+                        })()}
                         
                         <div class="begeleiders-box">
                             <div class="begeleiders-title">👥 Begeleiding (max 2, rest tribune)</div>
