@@ -1714,11 +1714,11 @@
                                 <div class="opmerking-box">
                                     <div class="opmerking-header">
                                         <span class="opmerking-label">📝 Opmerking</span>
-                                        ${isAdmin ? `<button class="btn-small btn-edit" onclick="openOpmerkingModal()">✏️</button>` : ''}
+                                        ${adminMode ? `<button class="btn-small btn-edit" onclick="openOpmerkingModal()">✏️</button>` : ''}
                                     </div>
                                     <div class="opmerking-text">${opmerking}</div>
                                 </div>`;
-                            } else if (isAdmin) {
+                            } else if (adminMode) {
                                 return `
                                 <div class="opmerking-box empty">
                                     <button class="btn-add-opmerking" onclick="openOpmerkingModal()">📝 Opmerking toevoegen</button>
